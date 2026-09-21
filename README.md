@@ -7,21 +7,16 @@
 
 ## Overview
 
-This project builds a multi-task deep learning pipeline to classify knee MRI scans from the [MRNet dataset (Stanford ML Group)](https://stanfordmlgroup.github.io/competitions/mrnet/) for three orthopedic conditions:
+This project benchmarks deep learning architectures for automated knee MRI classification using the [Stanford MRNet dataset](https://stanfordmlgroup.github.io/competitions/mrnet/) — 1,370 knee MRI exams across three anatomical planes (axial, coronal, sagittal), labelled for three clinical targets: ACL tear, meniscal tear, and general abnormality.
 
-| Task | Condition | Clinical Significance |
-|------|-----------|----------------------|
-| ACL | Anterior Cruciate Ligament tear | Most common sports injury |
-| Meniscus | Meniscal tear | Leading cause of knee instability |
-| Abnormal | General abnormality | First-pass triage |
+Three architectures are compared:
+- **ResNet-18 (max-pool fusion)** — ImageNet-pretrained, max-pooled slice aggregation
+- **ResNet-18 (attention pooling)** — learned per-slice attention weights, 2-stage training
+- **Swin Transformer (Swin-Tiny)** — window-based self-attention, attention pooling
 
-Two architectures are benchmarked:
-- **ResNet-18** (pretrained on ImageNet, fine-tuned per-plane)
-- **Swin Transformer** (SwinViT, hierarchical attention)
+All models use a **multi-plane fusion** strategy: three separate models (one per plane) whose output probabilities are combined via Nelder-Mead optimised weighted sum.
 
-Full **Explainable AI (XAI)** is applied post-hoc using:
-- **SHAP** (SHapley Additive exPlanations) — global feature importance
-- **Grad-CAM** (Gradient-weighted Class Activation Mapping) — spatial saliency maps
+Full **Explainable AI (XAI)** is applied using **Grad-CAM** to generate spatial saliency maps and qualitatively validate anatomical localisation across true positives, false positives, false negatives, and true negatives.
 
 ---
 
@@ -31,14 +26,14 @@ Full **Explainable AI (XAI)** is applied post-hoc using:
 mrnet-knee-mri-xai/
 ├── notebooks/
 │   ├── 00_mrnet_tutorial_baseline.ipynb    # Baseline tutorial
-│   ├── 01_mrnet_resnet_training.ipynb      # ResNet-18 training
+│   ├── 01_mrnet_resnet_training.ipynb      # ResNet-18 max-pool training
 │   ├── 02_mrnet_swin_training.ipynb        # Swin Transformer training
 │   ├── 03_xai_gradcam.ipynb                # Grad-CAM saliency maps
 │   ├── 04_xai_shap.ipynb                   # SHAP feature attribution
-│   ├── 05_resnet_attention.ipynb           # Attention-augmented ResNet
+│   ├── 05_resnet_attention.ipynb           # Attention-pooling ResNet
 │   └── 06_gradcam_pretrained_model.ipynb   # Grad-CAM with trained model
 ├── reports/
-│   └── MRNet_report_group1.pdf             # Full academic report
+│   └── MRNet_report_group1.pdf             # Full academic group report
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -46,29 +41,47 @@ mrnet-knee-mri-xai/
 
 ---
 
-## Key Results
+## Key Results (Holdout Test Set, n=119)
 
-| Model | ACL AUC | Meniscus AUC | Abnormal AUC |
-|-------|---------|-------------|-------------|
-| ResNet-18 (split-plane) | 0.87 | 0.78 | 0.89 |
-| Swin Transformer | 0.89 | 0.80 | 0.91 |
+**Aggregate Performance**
+
+| Model | ROC-AUC | Sensitivity | Specificity | F1 |
+|-------|---------|------------|------------|-----|
+| ResNet-18 (max-pool fusion) | **0.898** | **90.5%** | 75.0% | **0.863** |
+| ResNet-18 (attention fusion) | 0.859 | 81.6% | **76.3%** | 0.816 |
+| Swin Transformer fusion | 0.887 | 88.1% | 73.1% | 0.843 |
+
+**Per-Task ROC-AUC**
+
+| Task | ResNet-18 (max-pool) | ResNet-18 (attention) | Swin Transformer |
+|------|---------------------|----------------------|-----------------|
+| Abnormality | 0.873 | 0.872 | **0.928** |
+| ACL Tear | **0.968** | 0.919 | 0.927 |
+| Meniscal Tear | 0.798 | 0.765 | **0.804** |
 
 ---
 
 ## Methodology
 
-### 1. Data Pipeline
-- 3-plane MRI volumes (axial, coronal, sagittal) loaded per slice
-- Per-plane normalisation and augmentation (horizontal flip, rotation ±10°)
-- Train/Val/Test split following original MRNet protocol
+### 1. Dataset & Preprocessing
+- 1,370 knee MRI exams — axial, coronal, sagittal series per exam
+- Class distribution: 80.6% abnormal, 23.3% ACL tear, 37.1% meniscal tear
+- 85:15 train/validation split from 1,251 training exams; 119-exam holdout test set
+- Augmentation: random rotation, horizontal flip, affine translation
+- Intensity normalisation to [0, 1]
 
 ### 2. Architecture
-- **Split-plane strategy** — independent encoders per MRI plane, features concatenated into classification head
-- **Swin Transformer** — window-based self-attention for global structural pattern capture
+- **Slice aggregation**: Each 3D volume → per-slice features via backbone → aggregated with either max-pool or learned attention
+- **Multi-plane fusion**: Separate model per plane; final probabilities fused via Nelder-Mead optimised weights
+- **Weighted BCE loss**: pos_weight = negative/positive ratio to handle class imbalance
+- **Auxiliary experiments**: WGAN-GP synthetic augmentation; DINOv3 self-supervised baseline
 
-### 3. Explainability
-- **Grad-CAM** — highlights anatomical regions driving ACL/meniscus predictions
-- **SHAP** — quantifies each input slice's contribution to the final prediction probability
+### 3. Explainability (Grad-CAM)
+- Applied to the sagittal ResNet-18 ACL model
+- **True Positives**: Tight activation localised near ACL anatomical region
+- **False Positives**: Diffuse peripheral activation on non-pathological features
+- **False Negatives**: Weak activation — model missed subtle single-plane tears
+- Finding: Grad-CAM is most valuable as an **error analysis tool**, not as proof of radiologist-level reasoning
 
 ---
 
