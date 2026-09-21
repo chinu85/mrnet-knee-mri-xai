@@ -1,0 +1,34 @@
+﻿# ── Large data & model files ─────────────────────────────────────────────────
+*.zip
+*.tar.gz
+*.h5
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.bin
+
+# ── Dataset folders ───────────────────────────────────────────────────────────
+MRNET_Dataset/
+data/
+checkpoints/
+Preprocessed_development/
+nnunet_preprocessed/
+nnunet_raw/
+nnunet_results/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── OS & editor junk ──────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+__MACOSX/
+__pycache__/
+*.pyc
+~$*
+
+# ── Large media files ─────────────────────────────────────────────────────────
+*.mp4
+*.avi
+*.mov
