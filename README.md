@@ -1,17 +1,13 @@
 ﻿# MRNet Knee MRI Classification + Explainable AI (SHAP & Grad-CAM)
 
-> **MSc AI for Medicine · University College Dublin**  
+> MSc AI for Medicine · University College Dublin
 > Deep Learning for Musculoskeletal Pathology Detection with Full Explainability
-
-[![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red)](https://pytorch.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
 ## Overview
 
-This project builds a **multi-task deep learning pipeline** to classify knee MRI scans from the [MRNet dataset (Stanford ML Group)](https://stanfordmlgroup.github.io/competitions/mrnet/) for three orthopedic conditions:
+This project builds a multi-task deep learning pipeline to classify knee MRI scans from the [MRNet dataset (Stanford ML Group)](https://stanfordmlgroup.github.io/competitions/mrnet/) for three orthopedic conditions:
 
 | Task | Condition | Clinical Significance |
 |------|-----------|----------------------|
@@ -34,16 +30,15 @@ Full **Explainable AI (XAI)** is applied post-hoc using:
 ```
 mrnet-knee-mri-xai/
 ├── notebooks/
-│   ├── 01_mrnet_resnet_training.ipynb      # ResNet-18 per-plane training pipeline
-│   ├── 02_mrnet_swin_training.ipynb        # Swin Transformer training pipeline
-│   ├── 03_xai_gradcam.ipynb                # Grad-CAM saliency visualisation
-│   ├── 04_xai_shap.ipynb                   # SHAP feature attribution analysis
-│   └── 05_resnet_attention.ipynb           # Attention-augmented ResNet experiments
+│   ├── 00_mrnet_tutorial_baseline.ipynb    # Baseline tutorial
+│   ├── 01_mrnet_resnet_training.ipynb      # ResNet-18 training
+│   ├── 02_mrnet_swin_training.ipynb        # Swin Transformer training
+│   ├── 03_xai_gradcam.ipynb                # Grad-CAM saliency maps
+│   ├── 04_xai_shap.ipynb                   # SHAP feature attribution
+│   ├── 05_resnet_attention.ipynb           # Attention-augmented ResNet
+│   └── 06_gradcam_pretrained_model.ipynb   # Grad-CAM with trained model
 ├── reports/
-│   ├── MRNet_report_group1.pdf             # Full academic group report
-│   └── MRNet_viva_consolidated_model_card_FAQ.docx  # Model card & viva Q&A
-├── assets/
-│   └── (architecture diagrams, result plots)
+│   └── MRNet_report_group1.pdf             # Full academic report
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -53,10 +48,10 @@ mrnet-knee-mri-xai/
 
 ## Key Results
 
-| Model | Plane Fusion | ACL AUC | Meniscus AUC | Abnormal AUC |
-|-------|-------------|---------|-------------|-------------|
-| ResNet-18 (split-plane) | Max pooling | 0.87 | 0.78 | 0.89 |
-| Swin Transformer | Attention | 0.89 | 0.80 | 0.91 |
+| Model | ACL AUC | Meniscus AUC | Abnormal AUC |
+|-------|---------|-------------|-------------|
+| ResNet-18 (split-plane) | 0.87 | 0.78 | 0.89 |
+| Swin Transformer | 0.89 | 0.80 | 0.91 |
 
 ---
 
@@ -68,40 +63,32 @@ mrnet-knee-mri-xai/
 - Train/Val/Test split following original MRNet protocol
 
 ### 2. Architecture
-- **Split-plane strategy**: Independent encoders per MRI plane → feature concatenation → classification head
-- **Swin Transformer**: Window-based self-attention captures global structural patterns
+- **Split-plane strategy** — independent encoders per MRI plane, features concatenated into classification head
+- **Swin Transformer** — window-based self-attention for global structural pattern capture
 
 ### 3. Explainability
-- **Grad-CAM**: Highlights which anatomical regions activate the model's ACL/meniscus predictions
-- **SHAP**: Quantifies each input slice's contribution to the final prediction probability
+- **Grad-CAM** — highlights anatomical regions driving ACL/meniscus predictions
+- **SHAP** — quantifies each input slice's contribution to the final prediction probability
 
 ---
 
 ## Getting Started
 
-`ash
-# Clone the repo
+**1. Clone and install**
+
+```bash
 git clone https://github.com/chinu85/mrnet-knee-mri-xai.git
 cd mrnet-knee-mri-xai
-
-# Install dependencies
 pip install -r requirements.txt
+```
 
-# Download MRNet dataset (Stanford registration required)
-# https://stanfordmlgroup.github.io/competitions/mrnet/
+**2. Download the dataset**
 
-# Run training
-jupyter notebook notebooks/01_mrnet_resnet_training.ipynb
-`
+The MRNet dataset requires a free registration with Stanford ML Group.
+Request access at: https://stanfordmlgroup.github.io/competitions/mrnet/
 
----
+Once downloaded, place the data folder in the project root:
 
-## Dataset
-
-The **MRNet dataset** is provided by Stanford ML Group and requires a data use agreement.  
-Download from: [https://stanfordmlgroup.github.io/competitions/mrnet/](https://stanfordmlgroup.github.io/competitions/mrnet/)
-
-Once downloaded, place in:
 ```
 data/
 ├── train/
@@ -112,6 +99,14 @@ data/
     ├── axial/
     ├── coronal/
     └── sagittal/
+```
+
+**3. Run the notebooks**
+
+Open Jupyter and run notebooks in order starting from `01_mrnet_resnet_training.ipynb`.
+
+```bash
+jupyter notebook
 ```
 
 ---
@@ -130,13 +125,13 @@ data/
 
 ## Academic Context
 
-This project was completed as part of the **MSc AI for Medicine** programme at University College Dublin (2025–2026), within the module on Deep Learning for Medical Imaging.
+This project was completed as part of the MSc AI for Medicine programme at University College Dublin (2025–2026), within the module on Deep Learning for Medical Imaging.
 
 ---
 
 ## Author
 
-**Sourabh Kumawat**  
-MSc AI for Medicine, University College Dublin  
-📧 shmsourabhrj3062002@gmail.com  
+**Sourabh Kumawat**
+MSc AI for Medicine, University College Dublin
+📧 shmsourabhrj3062002@gmail.com
 🔗 [LinkedIn](https://www.linkedin.com/in/sourabh-kumawat-a74956202/) | [GitHub](https://github.com/chinu85)
